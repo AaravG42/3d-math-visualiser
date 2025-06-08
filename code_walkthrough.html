@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detailed Code Walkthrough: 3D Math Visualizer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/themes/prism-tomorrow.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Lato', sans-serif;
+            line-height: 1.7;
+            color: #212529;
+            background-color: #f8f9fa;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        h1 {
+            font-family: 'Lato', sans-serif;
+            font-weight: 700;
+            font-size: 2.8em;
+            color: #1a1a1a;
+            border-bottom: 4px solid #764ba2;
+            padding-bottom: 15px;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+        h2 {
+            font-family: 'Lato', sans-serif;
+            font-size: 2em;
+            color: #1a1a1a;
+            margin-top: 40px;
+            margin-bottom: 20px;
+        }
+        .code-section {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.07);
+        }
+        .code-block {
+            min-width: 0;
+        }
+        .explanation {
+            padding-left: 20px;
+            border-left: 4px solid #667eea;
+            font-size: 1.05em;
+        }
+        .explanation h3 {
+            margin-top: 0;
+            font-size: 1.5em;
+            color: #667eea;
+        }
+        .explanation p {
+            margin-bottom: 15px;
+        }
+        .line-comment {
+            display: block;
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 6px;
+            font-size: 0.95em;
+        }
+        .line-comment strong {
+            font-family: 'Fira Code', monospace;
+            color: #c92a2a;
+        }
+        pre[class*="language-"] {
+            padding: 1.5em;
+            margin: 0;
+            overflow: auto;
+            border-radius: 8px;
+            height: 100%;
+            background: #2d2d2d;
+        }
+        code[class*="language-"] {
+            font-family: 'Fira Code', monospace;
+            font-size: 14px;
+        }
+        .note {
+            background: #fff3cd;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 20px 0;
+            border-radius: 6px;
+        }
+        .subsection-title {
+            font-family: 'Lato', sans-serif;
+            font-size: 1.8em;
+            color: #343a40;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #ced4da;
+            padding-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Detailed Code Walkthrough: 3D Math Visualizer</h1>
+
+    <h2>Section 1: Initialization and Setup</h2>
+    <div class="code-section">
+        <div class="code-block">
+            <pre><code class="language-js">// The main entry point function.
+// It sets up the entire visualizer in a designated HTML container.
+function createMathVisualizer(containerId = 'math-visualizer') {
+    // Find or create the main container element for the visualizer.
+    const container = document.getElementById(containerId) || document.createElement('div');
+    container.id = containerId;
+    
+    // Apply essential styles for the container.
+    container.style.cssText = `
+        width: 100%;
+        height: 600px;
+        position: relative;
+        background: #1a1a1a;
+        border-radius: 8px;
+        overflow: hidden;    `;
+        
+      // Check if the A-Frame 3D library is already on the page.
+    if (!window.AFRAME) {
+        // If not, create a script tag to load it from a CDN.
+        const script = document.createElement('script');
+        script.src = 'https://aframe.io/releases/1.4.0/aframe.min.js';
+        document.head.appendChild(script);
+        
+        // Set up a callback to run after the script has loaded.
+        script.onload = function() {
+            // Register custom A-Frame components for enhanced controls.
+            // (Detailed explanation of components is omitted for brevity).
+            
+            // Initialize the rest of the visualizer after a short delay.
+            setTimeout(() => initializeVisualizer(), 500);
+        };
+    } else {
+        // If A-Frame is already present, initialize immediately.
+        initializeVisualizer();
+    }
+    
+    // The actual initialization logic is in a separate function.
+    function initializeVisualizer() {
+        // Dynamically create and inject the A-Frame scene and UI into the container.
+        // This includes the control panel, the 3D scene, lights, camera, and axes.
+        container.innerHTML = `... HTML for scene and controls ...`;
+        
+        // Create the global instance of our main controller class.
+        // This must happen AFTER the HTML is injected.
+        window.mathViz = new MathVisualizer();
+        
+        // Create the 3D gridlines.
+        window.mathViz.createGrid();
+    }
+    
+    // If the specified container wasn't in the document, append the new one.
+    if (!document.getElementById(containerId)) {
+        document.body.appendChild(container);
+    }
+    
+    return container;
+}</code></pre>
+        </div>
+        <div class="explanation">
+            <h3>Function: <code>createMathVisualizer</code></h3>
+            <p>This is the master function that builds the entire application. Its main job is to prepare the webpage and then hand off control to the `MathVisualizer` class.</p>
+            <div class="line-comment">
+                <strong>const container = ...</strong>
+                <p>This line is robust. It tries to find an element with the given ID. If you forgot to add `<div id="math-visualizer"></div>` to your HTML, it doesn't crash. Instead, it creates a new `div` from scratch to hold the application.</p>
+            </div>
+            <div class="line-comment">
+                <strong>if (!window.AFRAME) { ... }</strong>
+                <p>This is a crucial dependency check. The visualizer relies on the A-Frame library for all the 3D rendering. This block dynamically loads A-Frame if it's missing, making the script self-contained and easier to use.</p>
+            </div>
+            <div class="line-comment">
+                <strong>script.onload = function() { ... }</strong>
+                <p>We can't use A-Frame functions before the library has fully loaded. This `onload` event acts as a gate, ensuring that our `initializeVisualizer` function only runs after the A-Frame dependency is ready.</p>
+            </div>
+             <div class="line-comment">
+                <strong>function initializeVisualizer() { ... }</strong>
+                <p>This function does the heavy lifting of setup. It injects a large block of HTML into the container. This HTML defines the entire 3D scene using A-Frame's custom tags (e.g., `<a-scene>`, `<a-sky>`, `<a-camera>`) and also creates the UI control panel.</p>
+            </div>
+             <div class="line-comment">
+                <strong>window.mathViz = new MathVisualizer();</strong>
+                <p>After the scene and UI are in the document, we create the one and only instance of our `MathVisualizer` class. We attach it to the global `window` object so that the `onclick` attributes in the HTML (e.g., `onclick="mathViz.addVector()"`) can find and call its methods.</p>
+            </div>
+        </div>
+    </div>
+
+    <h2>Section 2: The MathVisualizer Class - Core Controller</h2>
+    <div class="code-section">
+        <div class="code-block">
+            <pre><code class="language-js">class MathVisualizer {
+    constructor() {
+        // Counter to ensure unique IDs for new vector objects.
+        this.vectorCount = 0;
+        
+        // Counter for unique IDs for new surface objects.
+        this.surfaceCount = 0;
+        
+        // An array to keep track of every 3D object currently in the scene.
+        this.objects = [];
+    }
+    
+    // ... many methods for adding and removing objects ...
+}</code></pre>
+        </div>
+        <div class="explanation">
+            <h3>Class: <code>MathVisualizer</code> - Constructor</h3>
+            <p>The `MathVisualizer` class is the brain of the application. The constructor's job is to initialize the state that the object will manage throughout its lifecycle.</p>
+             <div class="line-comment">
+                <strong>this.vectorCount = 0; / this.surfaceCount = 0;</strong>
+                <p>These are simple counters. Every time we add a new vector or surface, we increment the corresponding counter and use its value to create a unique ID (e.g., "vector-0", "vector-1", "surface-0").</p>
+            </div>
+            <div class="line-comment">
+                <strong>this.objects = [];</strong>
+                <p>This is the most important piece of state. Every time a new 3D object is created and added to the scene, a reference to it is also pushed into this array. This master list is essential for the "Clear All" functionality, which iterates through this array to remove each object from the scene properly.</p>
+            </div>
+        </div>
+    </div>
+
+    <h3 class="subsection-title">Grid, Vector, and Surface Methods</h3>
+
+    <!-- Section: addVector -->
+    <div class="code-section">
+        <div class="code-block">
+            <pre><code class="language-js">addVector() {
+    // Get the x, y, z components and color from the UI input fields.
+    const x = parseFloat(document.getElementById('vx').value) || 0;
+    const y = parseFloat(document.getElementById('vy').value) || 0;
+    const z = parseFloat(document.getElementById('vz').value) || 0;
+    const color = document.getElementById('vcolor').value;
+
+    const length = Math.sqrt(x*x + y*y + z*z);
+    if (length === 0) return; // Don't draw a zero-length vector.
+
+    // Create a container entity for all parts of the vector.
+    const vectorEntity = document.createElement('a-entity');
+    
+    // The vector's direction, normalized to a length of 1.
+    const direction = new THREE.Vector3(x, y, z).normalize();
+
+    // Create a quaternion to represent the rotation needed to point a default
+    // cylinder (which points up along Y-axis) along our desired direction.
+    const quaternion = new THREE.Quaternion().setFromUnitVectors(
+        new THREE.Vector3(0, 1, 0), // from: default Y-axis
+        direction                  // to: our vector's direction
+    );
+    // Convert the quaternion to Euler angles (in degrees) for A-Frame.
+    const euler = new THREE.Euler().setFromQuaternion(quaternion, 'XYZ');
+    const rotX = THREE.MathUtils.radToDeg(euler.x);
+    const rotY = THREE.MathUtils.radToDeg(euler.y);
+    const rotZ = THREE.MathUtils.radToDeg(euler.z);
+
+    // Define proportional sizes for the parts of the arrow.
+    const arrowHeadLength = Math.max(0.3, length * 0.15);
+    const shaftLength = length - arrowHeadLength;
+
+    // Create the cylinder for the vector's shaft.
+    const shaft = document.createElement('a-cylinder');
+    // Position its center point halfway along the shaft's length.
+    const shaftCenter = direction.clone().multiplyScalar(shaftLength / 2);
+    shaft.setAttribute('position', `${shaftCenter.x} ${shaftCenter.y} ${shaftCenter.z}`);
+    shaft.setAttribute('height', shaftLength);
+    shaft.setAttribute('rotation', `${rotX} ${rotY} ${rotZ}`);
+    // ... other attributes (radius, color) ...
+
+    // Create the cone for the vector's arrowhead.
+    const arrowHead = document.createElement('a-cone');
+    // Position its center at the tip of the vector.
+    const headCenter = direction.clone().multiplyScalar(length - (arrowHeadLength / 2));
+    arrowHead.setAttribute('position', `${headCenter.x} ${headCenter.y} ${headCenter.z}`);
+    arrowHead.setAttribute('height', arrowHeadLength);
+    arrowHead.setAttribute('rotation', `${rotX} ${rotY} ${rotZ}`);
+    // ... other attributes (radius, color) ...
+
+    vectorEntity.appendChild(shaft);
+    vectorEntity.appendChild(arrowHead);
+    document.getElementById('math-objects').appendChild(vectorEntity);
+}</code></pre>
+        </div>
+        <div class="explanation">
+            <h3>Method: <code>addVector</code></h3>
+            <p>This method constructs and visualizes a 3D vector from a starting point (the origin) to a specified `(x, y, z)` coordinate.</p>
+            <div class="line-comment">
+                <strong>Direction and Rotation</strong>
+                <p>A major challenge is pointing the arrow correctly. A default cylinder in A-Frame points straight up. To rotate it to our desired direction, we use a <strong>quaternion</strong>. A quaternion is a robust mathematical tool for representing 3D rotations that avoids problems like "gimbal lock". The code creates a quaternion that represents the rotation from the default "up" vector to our target direction vector.</p>
+            </div>
+            <div class="line-comment">
+                <strong>Component Parts</strong>
+                <p>A vector is drawn as two separate geometric shapes grouped together in a single `<a-entity>`:</p>
+                <ul>
+                    <li>An `<a-cylinder>` for the shaft.</li>
+                    <li>An `<a-cone>` for the arrowhead.</li>
+                </ul>
+            </div>
+            <div class="line-comment">
+                <strong>Positioning</strong>
+                <p>The position of each part is calculated carefully. The shaft's center is placed halfway along its own length, while the cone's center is placed at the end of the total vector length minus half the arrowhead's length. This ensures they line up perfectly to form a single, seamless arrow.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Section: addExplicitSurface -->
+    <div class="code-section">
+        <div class="code-block">
+            <pre><code class="language-js">addExplicitSurface() {
+    // Get the function string "f(x,y)" and other parameters from the UI.
+    const func = document.getElementById('explicit-func').value;
+    const range = parseFloat(document.getElementById('explicit-range').value);
+    const resolution = parseInt(document.getElementById('explicit-res').value);
+    const color = document.getElementById('explicit-color').value;
+
+    // Create a container entity for all the triangles of the surface.
+    const surfaceEntity = document.createElement('a-entity');
+
+    // Loop through a 2D grid in the X-Y plane.
+    for (let i = 0; i < resolution; i++) {
+        for (let j = 0; j < resolution; j++) {
+            // Calculate the coordinates of the four corners of a small grid square (quad).
+            const x1 = (i / resolution) * 2 * range - range;
+            const y1 = (j / resolution) * 2 * range - range;
+            const x2 = ((i + 1) / resolution) * 2 * range - range;
+            const y2 = ((j + 1) / resolution) * 2 * range - range;
+
+            // For each (x,y) corner, calculate the z-value using the user's function.
+            const z1 = this.evaluateExpression(func, {x: x1, y: y1});
+            const z2 = this.evaluateExpression(func, {x: x2, y: y1});
+            const z3 = this.evaluateExpression(func, {x: x1, y: y2});
+            const z4 = this.evaluateExpression(func, {x: x2, y: y2});
+
+            // A 3D quad is made of two triangles. Create the first one.
+            const triangle1 = document.createElement('a-triangle');
+            triangle1.setAttribute('vertex-a', `${x1} ${y1} ${z1}`);
+            triangle1.setAttribute('vertex-b', `${x2} ${y1} ${z2}`);
+            triangle1.setAttribute('vertex-c', `${x1} ${y2} ${z3}`);
+            // ... set color, opacity, etc. ...
+
+            // Create the second triangle to complete the quad.
+            const triangle2 = document.createElement('a-triangle');
+            triangle2.setAttribute('vertex-a', `${x2} ${y1} ${z2}`);
+            triangle2.setAttribute('vertex-b', `${x2} ${y2} ${z4}`);
+            triangle2.setAttribute('vertex-c', `${x1} ${y2} ${z3}`);
+            // ... set color, opacity, etc. ...
+
+            surfaceEntity.appendChild(triangle1);
+            surfaceEntity.appendChild(triangle2);
+        }
+    }
+    document.getElementById('math-objects').appendChild(surfaceEntity);
+}</code></pre>
+        </div>
+        <div class="explanation">
+            <h3>Method: <code>addExplicitSurface</code></h3>
+            <p>This method handles functions of the form `z = f(x, y)`, where the `z` value is explicitly defined by `x` and `y`. This is simpler than an implicit surface.</p>
+            <div class="line-comment">
+                <strong>Grid Generation</strong>
+                <p>The core of this method is a pair of nested `for` loops. These loops create a 2D grid of points on the X-Y plane. The `resolution` parameter determines how fine or coarse this grid is.</p>
+            </div>
+            <div class="line-comment">
+                <strong>Vertex Calculation</strong>
+                <p>For each square in the grid, it calculates the `(x, y)` coordinates of its four corners. It then calls `evaluateExpression` for each corner to find the corresponding `z` height.</p>
+            </div>
+            <div class="line-comment">
+                <strong>Triangulation</strong>
+                <p>3D graphics hardware is optimized to draw triangles. We can't directly draw a 3D square (a quad). So, for each square in our grid, we create two `<a-triangle>` elements that share an edge. Together, these two triangles form the visible surface for that small patch of the grid. By repeating this process for the entire grid, we build the complete surface.</p>
+            </div>
+        </div>
+    </div>
+    
+    <h2>Section 3: The Math Engine</h2>
+    <div class="code-section">
+        <div class="code-block">
+            <pre><code class="language-js">// Evaluates a mathematical string expression with given variables.
+evaluateExpression(expr, variables) {
+    // First, handle custom syntax like 'x^2' and convert to 'Math.pow(x, 2)'.
+    expr = this.convertExponents(expr);
+    
+    // Replace all known math function names with their JavaScript equivalents.
+    expr = expr.replace(/sin/g, 'Math.sin');
+    expr = expr.replace(/cos/g, 'Math.cos');
+    // ... (many more function replacements) ...
+    expr = expr.replace(/\bpi\b/g, 'Math.PI');
+    expr = expr.replace(/\be\b/g, 'Math.E');
+    
+    // Replace all variable names (like 'x', 'y', 'z') with their numeric values.
+    for (const [key, value] of Object.entries(variables)) {
+        // The '\\b' is a "word boundary" to prevent replacing 'x' inside 'exp()'.
+        const regex = new RegExp(`\\b${key}\\b`, 'g');
+        expr = expr.replace(regex, value);
+    }
+    
+    // After all replacements, the string is pure JavaScript math. Execute it.
+    try {
+        return eval(expr);
+    } catch (e) {
+        // If the formula is invalid (e.g., "sin(x*"), catch the error.
+        console.error('Expression evaluation error:', e, 'in expression:', expr);
+        // Show an error message to the user in the UI.
+        // ... (error display logic) ...
+        return 0; // Return a neutral value.
+    }
+}</code></pre>
+        </div>
+        <div class="explanation">
+            <h3>Method: <code>evaluateExpression</code></h3>
+            <p>This is the powerful and flexible core of the math engine. It takes a user-written formula as a string and calculates its numerical result.</p>
+            <div class="line-comment">
+                <strong>expr.replace(/sin/g, 'Math.sin')</strong>
+                <p>The entire parsing strategy is based on a series of string replacements. It transforms a user-friendly string like `"sin(pi*x)"` into a machine-readable JavaScript string like `"Math.sin(Math.PI*x)"`.</p>
+            </div>
+            <div class="line-comment">
+                <strong>for (const [key, value]...)</strong>
+                <p>This is the variable injection step. If the `variables` object is `{ x: 0.5 }`, this loop turns `"Math.sin(Math.PI*x)"` into `"Math.sin(Math.PI*0.5)"`.</p>
+            </div>
+            <div class="line-comment">
+                <strong>return eval(expr)</strong>
+                <p>This is the final execution step. `eval()` is a powerful JavaScript function that executes a string as if it were code. After all the replacements, the `expr` string is a valid mathematical statement that JavaScript can compute directly.</p>
+            </div>
+            <div class="note">
+                <strong>On the use of `eval()`:</strong> While powerful, `eval()` can be a security risk in some applications. Here, it is safe because the code is only ever run on the user's own browser, with their own input. The user cannot affect a server or other users. For a production app with more features, a dedicated math parsing library like `math.js` would be a safer, more robust alternative.
+            </div>
+        </div>
+    </div>
+    
+    <h2>Section 4: The Marching Cubes Algorithm</h2>
+    <div class="code-section">
+        <div class="code-block">
+            <pre><code class="language-js">// Processes one single cube (voxel) in the 3D grid.
+processCube(i, j, k, values, step, range, vertices, normals) {
+    // 1. Get the function value at the 8 corners of this cube.
+    const cubeValues = [ ... ]; // (Array of 8 values)
+
+    // 2. Determine the "cube index" (a number from 0-255).
+    let cubeIndex = 0;
+    for (let v = 0; v < 8; v++) {
+        // If a corner's value is negative, it's "inside" the surface.
+        if (cubeValues[v] < 0) {
+            // Use bitwise OR to set the corresponding bit for this vertex.
+            cubeIndex |= (1 << v);
+        }
+    }
+
+    // 3. Look up which edges are intersected by the surface for this index.
+    const edges = this.getEdgeTable()[cubeIndex];
+    if (edges === 0) return; // If no edges are cut, this cube is empty.
+
+    // 4. Find the exact intersection point on each required edge.
+    const edgeVertices = []; // Array to store up to 12 intersection points.
+    for (let e = 0; e < 12; e++) {
+        if (edges & (1 << e)) {
+            // Find the two corners of this edge.
+            // ...
+            // Linearly interpolate between the two corner values to find
+            // the exact point where the surface (value = 0) crosses the edge.
+            const intersection = this.interpolate(...);
+            edgeVertices[e] = intersection;
+        }
+    }
+
+    // 5. Look up how to connect these intersection points into triangles.
+    const triangles = this.getTriangleTable()[cubeIndex];
+    for (let t = 0; t < triangles.length; t += 3) {
+        // Get the three vertices that form one triangle.
+        const v1 = edgeVertices[triangles[t]];
+        const v2 = edgeVertices[triangles[t + 1]];
+        const v3 = edgeVertices[triangles[t + 2]];
+        
+        // Add their coordinates to the final list of vertices.
+        vertices.push(v1.x, v1.y, v1.z, v2.x, v2.y, v2.z, v3.x, v3.y, v3.z);
+    }
+}</code></pre>
+        </div>
+        <div class="explanation">
+            <h3>The Core: <code>processCube</code></h3>
+            <p>This is the heart of the Marching Cubes algorithm. This function is called thousands of times, once for every tiny "voxel" in the 3D space. It determines how the surface slices through this one specific cube.</p>
+            <div class="line-comment">
+                <strong>1. Cube Index Calculation</strong>
+                <p>We check each of the cube's 8 corners against the implicit function. A negative result means the corner is "inside" the surface. We create an 8-bit number (`cubeIndex`) where each bit corresponds to a corner (1 if inside, 0 if outside). This gives 2⁸ = 256 possible ways the surface can intersect the cube.</p>
+            </div>
+            <div class="line-comment">
+                <strong>2. Edge Table Lookup</strong>
+                <p><code>this.getEdgeTable()</code> returns a pre-computed array of 256 numbers. Using our `cubeIndex`, we look up an entry. This entry is another bitmask that tells us exactly which of the cube's 12 edges are crossed by the surface. This is a massive optimization over calculating it manually.</p>
+            </div>
+            <div class="line-comment">
+                <strong>3. Interpolation</strong>
+                <p>We now know *which* edges are crossed, but not *where*. The `interpolate` function performs linear interpolation between the two corner values of an edge to find the exact 3D coordinate where the surface crosses (i.e., where the function's value is zero).</p>
+            </div>
+            <div class="line-comment">
+                <strong>4. Triangle Table Lookup</strong>
+                <p>Finally, we use our `cubeIndex` one last time with `getTriangleTable()`. This lookup table tells us how to connect the intersection points we just found into one or more triangles to form a piece of the final surface. We add these triangle vertices to our master `vertices` array.</p>
+            </div>
+        </div>
+    </div>
+
+    <h2>Section 5: Scene Management</h2>
+    <div class="code-section">
+        <div class="code-block">
+            <pre><code class="language-js">removeObject(objectId, listItem) {
+    // Find the object's main <a-entity> in the scene using its unique ID.
+    const objectElement = document.getElementById(objectId);
+    if (objectElement) {
+        // Remove the element and all its children from the 3D scene.
+        objectElement.remove();
+    }
+    
+    // If a corresponding UI list item was passed, remove it as well.
+    if (listItem) {
+        listItem.remove();
+    }
+    
+    // Find and remove the object's reference from our internal tracking array.
+    // This is crucial for keeping the state consistent.
+    this.objects = this.objects.filter(obj => obj.id !== objectId);
+}
+
+clearAll() {
+    // Get the main container for all math objects.
+    const mathObjects = document.getElementById('math-objects');
+    if (mathObjects) {
+        // A fast and simple way to remove all child elements.
+        while (mathObjects.firstChild) {
+            mathObjects.removeChild(mathObjects.firstChild);
+        }
+    }
+    
+    // Clear all the UI lists in the control panel.
+    ['vector-list', 'explicit-list', 'param-list', 'implicit-list'].forEach(listId => {
+        const list = document.getElementById(listId);
+        if (list) {
+            list.innerHTML = ''; // Remove all list items.
+        }
+    });
+    
+    // Reset the internal tracking array to be empty.
+    this.objects = [];
+}</code></pre>
+        </div>
+        <div class="explanation">
+            <h3>Methods: <code>removeObject</code> & <code>clearAll</code></h3>
+            <p>These methods are responsible for cleaning up the scene and maintaining an accurate application state.</p>
+            <div class="line-comment">
+                <strong><code>removeObject(objectId, listItem)</code></strong>
+                <p>This function performs a complete cleanup for a single object. It has three responsibilities:</p>
+                <ol>
+                    <li><strong>Scene Graph:</strong> It removes the object's A-Frame entity from the document, which automatically removes it from the 3D world.</li>
+                    <li><strong>UI:</strong> It removes the corresponding item from the list in the control panel.</li>
+                    <li><strong>Internal State:</strong> It removes the object's record from the `this.objects` array to prevent memory leaks and errors.</li>
+                </ol>
+            </div>
+            <div class="line-comment">
+                <strong><code>clearAll()</code></strong>
+                <p>This is the "nuke" option. It efficiently wipes the scene clean. It removes all children from the main `math-objects` container, clears the HTML from all UI lists, and completely resets the `this.objects` tracking array to an empty state, preparing the visualizer for new objects.</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/prism.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.25.0/components/prism-javascript.min.js"></script>
+</body>
+</html> 
